@@ -21,7 +21,8 @@ I will continue development in spare time. The Unity client currently uses some 
 
 # Instructions:
 * Copy the factorio_mod folder to your Factorio directory (" C:\Users\USERNAME\AppData\Roaming\Factorio\mods" by default
-* Rename the factorio_mod directory to "factARy_0.1.0"
+* Rename the factorio_mod directory to "factARy_0.2.0"
+* Edit the server.py line with "osUserName = 'USERNAME'" so that USERNAME is the user account you use for your computer
 * Run server.py with Python 3
 * Start Factorio, enable the mod, and launch a game
 * Open a web browser to "http://127.0.0.1:8042" and test if the site greats you

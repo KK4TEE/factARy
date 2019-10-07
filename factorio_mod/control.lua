@@ -35,6 +35,7 @@
 filepath = "factARy_log"
 filenumber = "1"
 filetype = ".json"
+modVersion = "0.2.0"
 interateStage = 0
 path = ""
 tEntities = {}
@@ -78,7 +79,7 @@ script.on_event({defines.events.on_tick},
         
         js = js .. "{\n"
         js = js .. "\t\"mod\": \"factARy, by KK4TEE\",\n"
-		js = js .. "\t\"version\": \"0.1.0\",\n"
+		js = js .. "\t\"version\": \"" .. modVersion .. "\",\n"
         js = js .. "\t\"tick\": \"" .. e.tick .. "\", \n"
 		js = js .. "\t\"players\": {\n"
         for index,player in pairs(game.players) do  
@@ -110,19 +111,33 @@ script.on_event({defines.events.on_tick},
 			interateStage = interateStage + 1
 			end
 	elseif interateStage == 3 then ---------- Artillery Turrets
-		if #tArtilleryTurrets > lastEntityCompleted then
-			js = js .. JsonArtilleryTurrets(tArtilleryTurrets)
-			game.write_file(path, js, true)
-			end
+        if #tArtilleryTurrets == 0 then
+            -- There are no entities, skip this section
+            s = "\t\"artillery-turrets\": {\n"
+            s = s .. "\n\t},\n"
+            js = js .. s
+        else
+            if #tArtilleryTurrets > lastEntityCompleted then
+                js = js .. JsonArtilleryTurrets(tArtilleryTurrets)
+                end
+            end
+        game.write_file(path, js, true)
 		if lastEntityCompleted == #tArtilleryTurrets then 
 			lastEntityCompleted = 0
 			interateStage = interateStage + 1
 			end
 	elseif interateStage == 4 then ---------- Enemies
-		if #tEnemies > lastEntityCompleted then
-			js = js .. JsonEnemies(tEnemies)
-			game.write_file(path, js, true)
-			end
+        if #tEnemies == 0 then
+            -- There are no entities, skip this section
+            s = "\t\"enemies\": {\n"
+            s = s .. "\n\t},\n"
+            js = js .. s
+        else
+            if #tEnemies > lastEntityCompleted then
+                js = js .. JsonEnemies(tEnemies)
+                end
+            end
+        game.write_file(path, js, true)
 		if lastEntityCompleted == #tEnemies then 
 			lastEntityCompleted = 0
 			interateStage = interateStage + 1
@@ -134,7 +149,7 @@ script.on_event({defines.events.on_tick},
 			--game.take_screenshot{resolution={4096, 4096}, zoom=0.01, path="minimap.png", show_gui=false, show_entity_info=true, anti_alias=false}
 			loopsSinceScreenshot = 0
 			end
-			
+        interateStage = interateStage + 1
 	elseif interateStage == 6 then  --------- Close the file
         js = js .. "\t\"file_write_complete\":\"true\"\n"
 		js = js .. "}"
