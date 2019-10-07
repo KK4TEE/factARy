@@ -12,11 +12,35 @@ import json
 import os
 import time
 
+operatingSystem = 'Windows'
+osUserName = 'USERNAME'
+
 lastTime = 0
 interval = 0.033
 ## CHANGE THE BELOW PATHS TO POINT TO YOUR FACTORIO DIRECTORY ##
-filepath1 = r'C:\Users\USERNAME\AppData\Roaming\Factorio\script-output\factARy_log1.json'
-filepath2 = r'C:\Users\USERNAME\AppData\Roaming\Factorio\script-output\factARy_log2.json'
+
+if (operatingSystem is 'Windows'):
+    filepath_before_username = 'C:\\Users\\'
+    filepath_after_username = '\\AppData\\Roaming\\Factorio\\script-output\\'
+    logFileName = 'factARy_log'
+    logFileExtension = '.json'
+    filepath1 = filepath_before_username + \
+                osUserName + \
+                filepath_after_username + \
+                logFileName + '1' + logFileExtension
+    filepath2 = filepath_before_username + \
+                osUserName + \
+                filepath_after_username + \
+                logFileName + '2' + logFileExtension
+else:
+    filepath1 = "OS_NOT_SUPPORTED"
+    filepath2 = "OS_NOT_SUPPORTED"
+
+# In Windows 10, the filepaths should look something like this:    
+# filepath1 = r'C:\Users\USERNAME\AppData\Roaming\Factorio\script-output\factARy_log1.json'
+# filepath2 = r'C:\Users\USERNAME\AppData\Roaming\Factorio\script-output\factARy_log2.json'
+print("Filepath for logfile 1 is: '" + filepath1 + "'")
+
 data = {}
 
 def readData():
