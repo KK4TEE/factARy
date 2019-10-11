@@ -35,7 +35,7 @@
 filepath = "factARy_log"
 filenumber = "1"
 filetype = ".json"
-modVersion = "0.2.0"
+modVersion = "0.2.1"
 interateStage = 0
 path = ""
 tEntities = {}
@@ -51,7 +51,7 @@ TrackedForce = nil
 loopsSinceScreenshot = 0
 screenshotLoopInterval = 600
 
-maxEntitiesPerTick = 150
+maxEntitiesPerTick = 75
 lastEntityCompleted = 0
 
 
@@ -62,12 +62,8 @@ script.on_event({defines.events.on_tick},
     local js = ""
     path = filepath .. filenumber .. filetype
     if needToDoFirstScan then 
-		for index,player in pairs(game.players) do  
-			TrackedForce = player.force
-		end
-		tLocomotives, tTrainSignals, tEntities, tArtilleryTurrets, tEnemies = DebugSearchForEntities(game.surfaces[1], TrackedForce)
-		tCircuitNetworks, tListCircuitNetworks = tableCircuitNetworks(tEntities)
-		
+        game.print("factARy version " .. modVersion .. " starting JSON output")
+        scanEntities()
 		needToDoFirstScan = false
 		end
    
@@ -163,16 +159,32 @@ script.on_event({defines.events.on_tick},
 			end
 		interateStage = 0
         end  
-	if e.tick % 6000 == 0 then
-		--tLocomotives, tTrainSignals, tEntities = DebugSearchForEntities(game.surfaces[1])
-		--tCircuitNetworks, tListCircuitNetworks = tableCircuitNetworks(tEntities)
+	if e.tick % 7200 == 0 then
+        scanEntities()
 		end
 	if e.tick % 600 == 0 then
 		mapChunks = listSurfaceChunks(game.surfaces[1])
 		end
-    end  
-	
+    end
 )
+
+script.on_event(defines.events.on_player_died, function(event)
+    local recently_deceased_entity = event.entity
+    local time_of_death = event.tick
+    game.print("Let it be known that a player" ..
+               " died a tragic death on tick " .. time_of_death)
+    scanEntities()
+end)
+
+
+function scanEntities()
+    game.print("factARy scanning entities...")
+    for index,player in pairs(game.players) do  
+        TrackedForce = player.force
+    end
+    tLocomotives, tTrainSignals, tEntities, tArtilleryTurrets, tEnemies = DebugSearchForEntities(game.surfaces[1], TrackedForce)
+    tCircuitNetworks, tListCircuitNetworks = tableCircuitNetworks(tEntities)
+end
 
 
 function listSurfaceChunks(surface)
@@ -345,19 +357,25 @@ function jsonPlayer(player)
 	s = s .. KeyValStr("online_time", player.online_time, tabs) .. ",\n"
 	s = s .. KeyValStr("afk_time", player.afk_time, tabs)
 	if player.connected then
-		s = s .. ",\n"
-		s = s .. KeyValStr("unit_number", player.character.unit_number, tabs) .. ",\n"
-		s = s .. KeyValStr("color_r", tostring(player.character.color["r"]), tabs) .. ",\n"
-		s = s .. KeyValStr("color_g", tostring(player.character.color["g"]), tabs) .. ",\n"
-		s = s .. KeyValStr("color_b", tostring(player.character.color["b"]), tabs) .. ",\n"
-		s = s .. KeyValStr("color_a", tostring(player.character.color["a"]), tabs) .. ",\n"
-		s = s .. KeyValStr("health", player.character.health, tabs) .. ",\n"
-		s = s .. KeyValStr("in_combat", player.in_combat, tabs) .. ",\n"
-		s = s .. KeyValStr("force", player.force.name, tabs) .. ",\n"
-		s = s .. KeyValStr("surface.index", player.surface.index, tabs) .. ",\n"
-		s = s .. KeyValStr("surface.name", player.surface.name, tabs) .. ",\n"
-		s = s .. KeyValStr("x", player.position["x"], tabs) .. ",\n"
-		s = s .. KeyValStr("y", player.position["y"], tabs) .. "\n"
+        if player.character ~= nil then
+            s = s .. ",\n"
+            s = s .. KeyValStr("alive", true, tabs) .. ",\n"
+            s = s .. KeyValStr("unit_number", player.character.unit_number, tabs) .. ",\n"
+            s = s .. KeyValStr("color_r", tostring(player.character.color["r"]), tabs) .. ",\n"
+            s = s .. KeyValStr("color_g", tostring(player.character.color["g"]), tabs) .. ",\n"
+            s = s .. KeyValStr("color_b", tostring(player.character.color["b"]), tabs) .. ",\n"
+            s = s .. KeyValStr("color_a", tostring(player.character.color["a"]), tabs) .. ",\n"
+            s = s .. KeyValStr("health", player.character.health, tabs) .. ",\n"
+            s = s .. KeyValStr("in_combat", player.in_combat, tabs) .. ",\n"
+            s = s .. KeyValStr("force", player.force.name, tabs) .. ",\n"
+            s = s .. KeyValStr("surface.index", player.surface.index, tabs) .. ",\n"
+            s = s .. KeyValStr("surface.name", player.surface.name, tabs) .. ",\n"
+            s = s .. KeyValStr("x", player.position["x"], tabs) .. ",\n"
+            s = s .. KeyValStr("y", player.position["y"], tabs) .. "\n"
+        else
+            s = s .. ",\n"
+            s = s .. KeyValStr("alive", false, tabs) .. "\n"
+        end
 	else 
 		s = s .. "\n"
 	end
