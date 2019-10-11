@@ -7,10 +7,10 @@ I'm in the process of building an mod + app to visualize all of the game data I 
 
 It's made of three components: a mod to Factorio, the viewer client with the extra screen, and a small python server to bind them together.
 
-# Current status: Proof of Concept only
+# Current status: Alpha
 * Factorio Mod:  Mostly Functional, included in this repository
 * Python Server: Functional, included in this repository
-* Unity Viewer:  Somewhat Functional, not included yet. 
+* Unity Viewer:  Somewhat Functional, binary included in releases only 
 
 The Unity client currently uses some proprietary plugins that can't be shared in an open source project, so I will see about adjusting the project to share what I can. A zipped executable will be coming soon(tm) to the Releases page.
 
@@ -22,7 +22,7 @@ The Unity client currently uses some proprietary plugins that can't be shared in
 # Instructions:
 * Copy the factorio_mod folder to your Factorio directory (" C:\Users\USERNAME\AppData\Roaming\Factorio\mods" by default
 * Rename the factorio_mod directory to "factARy_0.2.0"
-* Edit the server.py line with "osUserName = 'USERNAME'" so that USERNAME is the user account you use for your computer
+* Edit the server.py line with "osUserName = 'YOUR_OS_USERNAME_HERE'" so that YOUR_OS_USERNAME_HERE is the user account you use for your computer
 * Run server.py with Python 3
 * Start Factorio, enable the mod, and launch a game
 * Open a web browser to "http://127.0.0.1:8042" and test if the site greats you
