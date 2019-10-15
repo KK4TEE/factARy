@@ -13,7 +13,7 @@ import os
 import time
 
 operatingSystem = 'Windows'
-osUserName = 'USERNAME'
+osUserName = 'YOUR_OS_USERNAME_HERE'
 
 lastTime = 0
 interval = 0.033

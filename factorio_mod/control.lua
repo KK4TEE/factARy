@@ -35,7 +35,7 @@
 filepath = "factARy_log"
 filenumber = "1"
 filetype = ".json"
-modVersion = "0.2.0"
+modVersion = "0.2.1"
 interateStage = 0
 path = ""
 tEntities = {}
@@ -45,13 +45,15 @@ needToDoFirstScan = true
 tLocomotives = {}
 tTrainSignals = {}
 tArtilleryTurrets = {}
+tTurrets = {}
+tTurretsWithTargets = {}
 tEnemies = {}
 mapChunks = {}
 TrackedForce = nil
 loopsSinceScreenshot = 0
 screenshotLoopInterval = 600
 
-maxEntitiesPerTick = 150
+maxEntitiesPerTick = 75
 lastEntityCompleted = 0
 
 
@@ -62,12 +64,8 @@ script.on_event({defines.events.on_tick},
     local js = ""
     path = filepath .. filenumber .. filetype
     if needToDoFirstScan then 
-		for index,player in pairs(game.players) do  
-			TrackedForce = player.force
-		end
-		tLocomotives, tTrainSignals, tEntities, tArtilleryTurrets, tEnemies = DebugSearchForEntities(game.surfaces[1], TrackedForce)
-		tCircuitNetworks, tListCircuitNetworks = tableCircuitNetworks(tEntities)
-		
+        game.print("factARy version " .. modVersion .. " starting JSON output")
+        scanEntities()
 		needToDoFirstScan = false
 		end
    
@@ -142,7 +140,36 @@ script.on_event({defines.events.on_tick},
 			lastEntityCompleted = 0
 			interateStage = interateStage + 1
 			end
-	elseif interateStage == 5 then ---------- Screenshot Map
+    elseif interateStage == 5 then ---------- Detect turrets with targets
+        if #tTurrets == 0 then
+            -- There are no entities, skip this section
+        else
+            if #tTurrets > lastEntityCompleted then
+                DetectTurretsFiring(tTurrets)
+                end
+            end
+		if lastEntityCompleted == #tTurrets then 
+            lastEntityCompleted = 0
+			interateStage = interateStage + 1
+			end
+    elseif interateStage == 6 then ---------- Turrets with Targets
+        if #tTurretsWithTargets == 0 then
+            -- There are no entities, skip this section
+            s = "\t\"turrets-with-targets\": {\n"
+            s = s .. "\n\t},\n"
+            js = js .. s
+        else
+            if #tTurretsWithTargets > lastEntityCompleted then
+                js = js .. JsonTurretsWithTargets(tTurretsWithTargets)
+                end
+            end
+        game.write_file(path, js, true)
+		if lastEntityCompleted == #tTurretsWithTargets then 
+			tTurretsWithTargets = {} -- Clear the list
+			lastEntityCompleted = 0
+			interateStage = interateStage + 1
+			end
+	elseif interateStage == 7 then ---------- Screenshot Map
 		loopsSinceScreenshot = loopsSinceScreenshot + 1
 		--game.take_screenshot{resolution={4096, 4096}, zoom=1, path="minimap-1.png", show_gui=false, show_entity_info=true, anti_alias=false}
 		if loopsSinceScreenshot > screenshotLoopInterval then
@@ -150,7 +177,7 @@ script.on_event({defines.events.on_tick},
 			loopsSinceScreenshot = 0
 			end
         interateStage = interateStage + 1
-	elseif interateStage == 6 then  --------- Close the file
+	elseif interateStage == 8 then  --------- Close the file
         js = js .. "\t\"file_write_complete\":\"true\"\n"
 		js = js .. "}"
         game.write_file(path, js, true)
@@ -163,16 +190,32 @@ script.on_event({defines.events.on_tick},
 			end
 		interateStage = 0
         end  
-	if e.tick % 6000 == 0 then
-		--tLocomotives, tTrainSignals, tEntities = DebugSearchForEntities(game.surfaces[1])
-		--tCircuitNetworks, tListCircuitNetworks = tableCircuitNetworks(tEntities)
+	if e.tick % 7200 == 0 then
+        scanEntities()
 		end
 	if e.tick % 600 == 0 then
 		mapChunks = listSurfaceChunks(game.surfaces[1])
 		end
-    end  
-	
+    end
 )
+
+script.on_event(defines.events.on_player_died, function(event)
+    local recently_deceased_entity = event.entity
+    local time_of_death = event.tick
+    game.print("Let it be known that a player" ..
+               " died a tragic death on tick " .. time_of_death)
+    scanEntities()
+end)
+
+
+function scanEntities()
+    game.print("factARy scanning entities...")
+    for index,player in pairs(game.players) do  
+        TrackedForce = player.force
+    end
+    tLocomotives, tTrainSignals, tEntities, tTurrets, tArtilleryTurrets,tEnemies = DebugSearchForEntities(game.surfaces[1], TrackedForce)
+    tCircuitNetworks, tListCircuitNetworks = tableCircuitNetworks(tEntities)
+end
 
 
 function listSurfaceChunks(surface)
@@ -196,6 +239,7 @@ function DebugSearchForEntities(surface, force)
 	local tTrainSignals = {}
 	local tNetworkHolders = {}
 	local tArtilleryTurrets = {}
+    local tTurrets = {}
 	local tEnemies = {}
 	local enemyInSector = false
 	--game.write_file("debug" .. path, "Performing a scan for entities" , false)
@@ -211,10 +255,18 @@ function DebugSearchForEntities(surface, force)
 				table.insert(tTrainSignals, entity)
 			elseif entity.name == "small-lamp" then 
 				table.insert(tNetworkHolders, entity)
+            elseif entity.name == "gun-turret" then
+                table.insert(tTurrets, entity)
+            elseif entity.name == "laser-turret" then
+                table.insert(tTurrets, entity) 
+            elseif entity.name == "flamethrower-turret" then
+                table.insert(tTurrets, entity) 
 			elseif entity.name == "artillery-turret" then
 				table.insert(tArtilleryTurrets, entity)
+                table.insert(tTurrets, entity) 
 			elseif entity.name == "artillery-wagon" then
 				table.insert(tArtilleryTurrets, entity)
+                table.insert(tTurrets, entity)
 			
 			end
 			enemyInSector = false
@@ -225,9 +277,10 @@ function DebugSearchForEntities(surface, force)
 	tLocomotives = table_unique(tLocomotives)
 	tTrainSignals = table_unique(tTrainSignals)
 	tNetworkHolders = table_unique(tNetworkHolders)
+    tTurrets = table_unique(tTurrets)
 	tArtilleryTurrets = table_unique(tArtilleryTurrets)
 	tEnemies = table_unique(tEnemies)
-	return tLocomotives, tTrainSignals, tNetworkHolders, tArtilleryTurrets, tEnemies
+	return tLocomotives, tTrainSignals, tNetworkHolders, tTurrets,  tArtilleryTurrets, tEnemies
 end
 
 
@@ -345,19 +398,25 @@ function jsonPlayer(player)
 	s = s .. KeyValStr("online_time", player.online_time, tabs) .. ",\n"
 	s = s .. KeyValStr("afk_time", player.afk_time, tabs)
 	if player.connected then
-		s = s .. ",\n"
-		s = s .. KeyValStr("unit_number", player.character.unit_number, tabs) .. ",\n"
-		s = s .. KeyValStr("color_r", tostring(player.character.color["r"]), tabs) .. ",\n"
-		s = s .. KeyValStr("color_g", tostring(player.character.color["g"]), tabs) .. ",\n"
-		s = s .. KeyValStr("color_b", tostring(player.character.color["b"]), tabs) .. ",\n"
-		s = s .. KeyValStr("color_a", tostring(player.character.color["a"]), tabs) .. ",\n"
-		s = s .. KeyValStr("health", player.character.health, tabs) .. ",\n"
-		s = s .. KeyValStr("in_combat", player.in_combat, tabs) .. ",\n"
-		s = s .. KeyValStr("force", player.force.name, tabs) .. ",\n"
-		s = s .. KeyValStr("surface.index", player.surface.index, tabs) .. ",\n"
-		s = s .. KeyValStr("surface.name", player.surface.name, tabs) .. ",\n"
-		s = s .. KeyValStr("x", player.position["x"], tabs) .. ",\n"
-		s = s .. KeyValStr("y", player.position["y"], tabs) .. "\n"
+        if player.character ~= nil then
+            s = s .. ",\n"
+            s = s .. KeyValStr("alive", true, tabs) .. ",\n"
+            s = s .. KeyValStr("unit_number", player.character.unit_number, tabs) .. ",\n"
+            s = s .. KeyValStr("color_r", tostring(player.character.color["r"]), tabs) .. ",\n"
+            s = s .. KeyValStr("color_g", tostring(player.character.color["g"]), tabs) .. ",\n"
+            s = s .. KeyValStr("color_b", tostring(player.character.color["b"]), tabs) .. ",\n"
+            s = s .. KeyValStr("color_a", tostring(player.character.color["a"]), tabs) .. ",\n"
+            s = s .. KeyValStr("health", player.character.health, tabs) .. ",\n"
+            s = s .. KeyValStr("in_combat", player.in_combat, tabs) .. ",\n"
+            s = s .. KeyValStr("force", player.force.name, tabs) .. ",\n"
+            s = s .. KeyValStr("surface.index", player.surface.index, tabs) .. ",\n"
+            s = s .. KeyValStr("surface.name", player.surface.name, tabs) .. ",\n"
+            s = s .. KeyValStr("x", player.position["x"], tabs) .. ",\n"
+            s = s .. KeyValStr("y", player.position["y"], tabs) .. "\n"
+        else
+            s = s .. ",\n"
+            s = s .. KeyValStr("alive", false, tabs) .. "\n"
+        end
 	else 
 		s = s .. "\n"
 	end
@@ -578,4 +637,80 @@ function JsonEnemies(T)
 			end
 	return s
 end
+
+
+function DetectTurretsFiring(E)
+    local startingIndex = lastEntityCompleted
+	local endingIndex = lastEntityCompleted + maxEntitiesPerTick
+    
+	for index,entity in pairs(E) do  
+			if index >= startingIndex and index < endingIndex then
+				if entity.valid then
+					if entity.shooting_target ~= nil then
+                        -- game.print("factARy: Turret has a target!") -- makes a notice sound!
+                        table.insert(tTurretsWithTargets, entity)
+                    end
+					
+				else
+					table.remove(E,index)
+				end
+				lastEntityCompleted = index
+			end
+        end
+    --return s
+end
+
+
+function TurretWithTarget(E)
+	local tabs = 4
+	local s = "\t\t\t \"" .. E.unit_number .. "\" : {\n"
+	s = s .. KeyValStr("x", tostring(E.position["x"]), tabs) .. ",\n"
+	s = s .. KeyValStr("y", tostring(E.position["y"]), tabs) .. ",\n" 
+	s = s .. KeyValStr("ammo_count", "-1", tabs) .. ",\n" --TODO: FIGURE OUT HOW TO GET INVENTORY
+	s = s .. KeyValStr("turret_range", tostring(E.prototype.turret_range), tabs) .. ",\n"
+    s = s .. KeyValStr("shooting_target", tostring(E.shooting_target), tabs) .. ",\n" 
+	s = s .. KeyValStr("damage_dealt", tostring(E.damage_dealt), tabs) .. ",\n"
+	s = s .. KeyValStr("kills", tostring(E.kills), tabs) .. ",\n"
+	s = s .. KeyValStr("last_user", tostring(E.last_user.name), tabs) .. "\n"
+	s = s .. "\n"
+	s = s .. "\t\t\t}"
+	return s
+
+end
+
+
+function JsonTurretsWithTargets(T)
+	local startingIndex = lastEntityCompleted
+	local endingIndex = lastEntityCompleted + maxEntitiesPerTick
+	local s = ""
+	
+	if startingIndex == 0 then
+		s = "\t\"turrets-with-targets\": {\n"
+	elseif startingIndex > 0 then
+		startingIndex = startingIndex + 1
+	end
+    for index,entity in pairs(T) do  
+			if index >= startingIndex and index < endingIndex then
+				if entity.valid then
+					if index > 1 then
+						s = s .. ","
+						s = s ..  "\n"
+					end
+					
+					s = s .. TurretWithTarget(entity)
+				else
+					table.remove(T,index)
+				end
+				lastEntityCompleted = index
+				--game.write_file("debug" .. path, "Last entity complete: " .. lastEntityCompleted .. " out of " .. #T, true)
+			end
+		
+
+        end
+		if lastEntityCompleted == #T then
+			s = s .. "\n\t},\n"
+			end
+	return s
+end
 -------------End Enemies------------------
+
