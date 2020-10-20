@@ -37,7 +37,7 @@
 filepath = "factARy_log"
 filenumber = "1"
 filetype = ".json"
-modVersion = "0.2.2"
+modVersion = "0.2.3"
 interateStage = 0
 path = ""
 tEntities = {}
