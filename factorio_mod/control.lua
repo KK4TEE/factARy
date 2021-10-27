@@ -274,10 +274,8 @@ function DebugSearchForEntities(surface, force)
                 table.insert(tTurrets, entity) 
 			elseif entity.name == "artillery-turret" then
 				table.insert(tArtilleryTurrets, entity)
-                table.insert(tTurrets, entity) 
 			elseif entity.name == "artillery-wagon" then
 				table.insert(tArtilleryTurrets, entity)
-                table.insert(tTurrets, entity)
 			
 			end
 			enemyInSector = false
