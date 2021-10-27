@@ -21,7 +21,7 @@ The Unity client currently uses some proprietary plugins that can't be shared in
 
 # Instructions:
 * Copy the factorio_mod folder to your Factorio directory (" C:\Users\USERNAME\AppData\Roaming\Factorio\mods" by default
-* Rename the factorio_mod directory to "factARy_0.2.0"
+* Rename the factorio_mod directory to "factARy_0.2.4"
 * Edit the server.py line with "osUserName = 'YOUR_OS_USERNAME_HERE'" so that YOUR_OS_USERNAME_HERE is the user account you use for your computer
 * Run server.py with Python 3
 * Start Factorio, enable the mod, and launch a game
