@@ -112,7 +112,7 @@ if __name__ == "__main__":
     
     cherrypy.config.update({
                         'server.socket_port': 8042,
-                        'server.socket_host': '0.0.0.0',
+                        'server.socket_host': '127.0.0.1',
                         #'server.ssl_module':  'builtin',
                         #'server.ssl_certificate': 'cert.pem',
                         #'server.ssl_certificate': 'fullchain.pem',

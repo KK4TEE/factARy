@@ -1,11 +1,11 @@
 {
     "name": "factARy",
-    "version": "0.2.3",
+    "version": "0.2.4",
     "title": "FactARy",
     "author": "KK4TEE",
     "contact": "http://reddit.com/u/kk4tee",
     "homepage": "https://github.com/KK4TEE/factARy",
-    "factorio_version": "1.0",
+    "factorio_version": "1.1",
     "dependencies": ["base >= 1.0"],
     "description": "Stream data to file, http, json, and into AR!"
 }
