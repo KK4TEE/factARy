@@ -5,11 +5,17 @@
 -- Licence: MIT
 
 ------------ Settings ---------------------------------------------------------
-
+-- TODO: Fix de-syncs when changing settings during multiplayer
 data:extend({
     {
         type = "bool-setting",
         name = "json_enabled",
+        setting_type = "runtime-global",
+        default_value = false
+    },
+    {
+        type = "bool-setting",
+        name = "minimap_enabled",
         setting_type = "runtime-global",
         default_value = false
     },
