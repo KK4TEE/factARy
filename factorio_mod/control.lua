@@ -34,11 +34,11 @@
 
 
 ------ To change settings, please refer to settings.lua -------
-filepath = "factARy_log"
-filenumber = "1"
-filetype = ".json"
-modVersion = "0.2.3"
-interateStage = 0
+filePath = "factARy_log"
+fileNumber = "1"
+fileExtension = ".json"
+modVersion = "0.2.4"
+iterateStage = 0
 path = ""
 tEntities = {}
 tCircuitNetworks = {}
@@ -62,14 +62,14 @@ script.on_init(function()
     -- pass
 end)
 
--- This script will write JSON data to a pair of alternating text files, with on additional file as a pointer to current read. One file can be read while the other is being written over the span of several ticks.
+-- This script will write JSON data to a pair of alternating text files. One file can be read while the other is being written over the span of several ticks.
 
 script.on_event({defines.events.on_tick},
     function (e)
     local json_enabled = settings.global["json_enabled"].value 
     if json_enabled then 
         local js = ""
-        path = filepath .. filenumber .. filetype
+        path = filePath .. fileNumber .. fileExtension
         if needToDoFirstScan then 
             game.print("factARy version " .. modVersion .. " starting JSON output")
             scanEntities()
@@ -79,7 +79,7 @@ script.on_event({defines.events.on_tick},
         -- Settings Update
         maxEntitiesPerTick = settings.global["maximum_entities_between_ticks"].value
         
-        if interateStage == 0 then 
+        if iterateStage == 0 then
             -- Performing the write is somewhat slow, so don't do it every tick!
             -- Also, don't write to disk any more often than you absolutely have to.
             -- Modify the string, then only write to file once at the end of the tick.
@@ -104,21 +104,21 @@ script.on_event({defines.events.on_tick},
             js = js .. "\n\t},\n"
             js = js .. checkCircuits(tCircuitNetworks, tListCircuitNetworks) .. ",\n"
             game.write_file(path, js, false)
-            interateStage = interateStage + 1
-        elseif interateStage == 1 then  ---------- Locomotives
+            iterateStage = iterateStage + 1
+        elseif iterateStage == 1 then  ---------- Locomotives
             js = js .. JsonLocomotives(tLocomotives)
             game.write_file(path, js, true)
-            interateStage = interateStage + 1
-        elseif interateStage == 2 then  ---------- Train Signals
+            iterateStage = iterateStage + 1
+        elseif iterateStage == 2 then  ---------- Train Signals
             if #tTrainSignals > lastEntityCompleted then
                 js = js .. JsonTrainSignals(tTrainSignals)
                 game.write_file(path, js, true)
                 end
             if lastEntityCompleted == #tTrainSignals then 
                 lastEntityCompleted = 0
-                interateStage = interateStage + 1
+                iterateStage = iterateStage + 1
                 end
-        elseif interateStage == 3 then ---------- Artillery Turrets
+        elseif iterateStage == 3 then ---------- Artillery Turrets
             if #tArtilleryTurrets == 0 then
                 -- There are no entities, skip this section
                 s = "\t\"artillery-turrets\": {\n"
@@ -132,9 +132,9 @@ script.on_event({defines.events.on_tick},
             game.write_file(path, js, true)
             if lastEntityCompleted == #tArtilleryTurrets then 
                 lastEntityCompleted = 0
-                interateStage = interateStage + 1
+                iterateStage = iterateStage + 1
                 end
-        elseif interateStage == 4 then ---------- Enemies
+        elseif iterateStage == 4 then ---------- Enemies
             if #tEnemies == 0 then
                 -- There are no entities, skip this section
                 s = "\t\"enemies\": {\n"
@@ -148,9 +148,9 @@ script.on_event({defines.events.on_tick},
             game.write_file(path, js, true)
             if lastEntityCompleted == #tEnemies then 
                 lastEntityCompleted = 0
-                interateStage = interateStage + 1
+                iterateStage = iterateStage + 1
                 end
-        elseif interateStage == 5 then ---------- Detect turrets with targets
+        elseif iterateStage == 5 then ---------- Detect turrets with targets
             if #tTurrets == 0 then
                 -- There are no entities, skip this section
             else
@@ -160,9 +160,9 @@ script.on_event({defines.events.on_tick},
                 end
             if lastEntityCompleted == #tTurrets then 
                 lastEntityCompleted = 0
-                interateStage = interateStage + 1
+                iterateStage = iterateStage + 1
                 end
-        elseif interateStage == 6 then ---------- Turrets with Targets
+        elseif iterateStage == 6 then ---------- Turrets with Targets
             if #tTurretsWithTargets == 0 then
                 -- There are no entities, skip this section
                 s = "\t\"turrets-with-targets\": {\n"
@@ -177,28 +177,28 @@ script.on_event({defines.events.on_tick},
             if lastEntityCompleted == #tTurretsWithTargets then 
                 tTurretsWithTargets = {} -- Clear the list
                 lastEntityCompleted = 0
-                interateStage = interateStage + 1
+                iterateStage = iterateStage + 1
                 end
-        elseif interateStage == 7 then ---------- Screenshot Map
+        elseif iterateStage == 7 then ---------- Screenshot Map
             loopsSinceScreenshot = loopsSinceScreenshot + 1
             --game.take_screenshot{resolution={4096, 4096}, zoom=1, path="minimap-1.png", show_gui=false, show_entity_info=true, anti_alias=false}
             if loopsSinceScreenshot > screenshotLoopInterval then
                 --game.take_screenshot{resolution={4096, 4096}, zoom=0.01, path="minimap.png", show_gui=false, show_entity_info=true, anti_alias=false}
                 loopsSinceScreenshot = 0
                 end
-            interateStage = interateStage + 1
-        elseif interateStage == 8 then  --------- Close the file
+            iterateStage = iterateStage + 1
+        elseif iterateStage == 8 then  --------- Close the file
             js = js .. "\t\"file_write_complete\":\"true\"\n"
             js = js .. "}"
             game.write_file(path, js, true)
             
             
-            if filenumber == "1" then
-                filenumber = "2"
+            if fileNumber == "1" then
+                fileNumber = "2"
             else 
-                filenumber = "1"
+                fileNumber = "1"
                 end
-            interateStage = 0
+            iterateStage = 0
             end  
         if e.tick % settings.global["ticks_between_entity_scans"].value == 0 then
             scanEntities()
