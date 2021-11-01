@@ -180,10 +180,10 @@ script.on_event({defines.events.on_tick},
                 iterateStage = iterateStage + 1
                 end
         elseif iterateStage == 7 then ---------- Screenshot Map
+			local minimap_enabled = settings.global["minimap_enabled"].value
             loopsSinceScreenshot = loopsSinceScreenshot + 1
-            --game.take_screenshot{resolution={4096, 4096}, zoom=1, path="minimap-1.png", show_gui=false, show_entity_info=true, anti_alias=false}
-            if loopsSinceScreenshot > screenshotLoopInterval then
-                --game.take_screenshot{resolution={4096, 4096}, zoom=0.01, path="minimap.png", show_gui=false, show_entity_info=true, anti_alias=false}
+            if minimap_enabled and loopsSinceScreenshot > screenshotLoopInterval then
+                game.take_screenshot{resolution={4096, 4096}, zoom=0.01, path="minimap.png", show_gui=false, show_entity_info=true, anti_alias=false}
                 loopsSinceScreenshot = 0
                 end
             iterateStage = iterateStage + 1
