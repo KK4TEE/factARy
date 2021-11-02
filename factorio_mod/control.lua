@@ -53,7 +53,6 @@ tEnemies = {}
 mapChunks = {}
 TrackedForce = nil
 loopsSinceScreenshot = 0
-screenshotLoopInterval = 600
 
 maxEntitiesPerTick = 75
 lastEntityCompleted = 0
@@ -181,9 +180,11 @@ script.on_event({defines.events.on_tick},
                 end
         elseif iterateStage == 7 then ---------- Screenshot Map
 			local minimap_enabled = settings.global["minimap_enabled"].value
+			local screenshotLoopInterval = settings.global["cycles_between_minimap_updates"].value
+			-- TODO: Swap from loop interval to map ticks modulo
             loopsSinceScreenshot = loopsSinceScreenshot + 1
             if minimap_enabled and loopsSinceScreenshot > screenshotLoopInterval then
-                game.take_screenshot{resolution={4096, 4096}, zoom=0.01, path="minimap.png", show_gui=false, show_entity_info=true, anti_alias=false}
+                game.take_screenshot{resolution={4096, 4096}, zoom=0.031250, path="minimap.png", show_gui=false, show_entity_info=true, anti_alias=false}
                 loopsSinceScreenshot = 0
                 end
             iterateStage = iterateStage + 1
