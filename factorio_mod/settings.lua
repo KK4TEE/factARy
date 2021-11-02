@@ -21,6 +21,12 @@ data:extend({
     },
     {
         type = "int-setting",
+        name = "cycles_between_minimap_updates",
+        setting_type = "runtime-global",
+        default_value = 150
+    },
+    {
+        type = "int-setting",
         name = "maximum_entities_between_ticks",
         setting_type = "runtime-global",
         default_value = 60
