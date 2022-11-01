@@ -32,7 +32,6 @@
 -- bum out rail chain markers if any color other than green
 
 
-
 ------ To change settings, please refer to settings.lua -------
 filePath = "factARy_log"
 fileNumber = "1"
