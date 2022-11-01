@@ -11,7 +11,8 @@ import cherrypy
 import json
 import os
 import time
-
+from io import BytesIO
+from PIL import Image, ImageDraw # Pillow image library
 
 lastTime = 0
 interval = 0.033
@@ -23,10 +24,12 @@ if os.name == 'nt':  # 'nt' is the code for Windows
     logFileExtension = '.json'
     filepath1 = os.path.join(outputPath, logFileName + '1' + logFileExtension)
     filepath2 = os.path.join(outputPath, logFileName + '2' + logFileExtension)
+    filepathMap = os.path.join(outputPath, "minimap.png")
 else:
     # If you are not on Windows, you can manually specify the path to the json files here
     filepath1 = "OS_NOT_SUPPORTED"
     filepath2 = "OS_NOT_SUPPORTED"
+    filepathMap = "OS_NOT_SUPPORTED"
 
 # In Windows 10, the filepaths should look something like this:
 # filepath1 = r'C:\Users\USERNAME\AppData\Roaming\Factorio\script-output\factARy_log1.json'
@@ -123,12 +126,15 @@ class Root:
         return data
 
     @cherrypy.expose
-    @cherrypy.tools.json_out()
     def map(self):
-        global data
-        
-        data = read_attempt_manager()
-        return data
+        img = Image.open(filepathMap)
+        buffer = BytesIO()
+        new_size = (1024, 1024)
+        modified_image = img.resize(new_size)
+        modified_image.save(buffer, 'png')
+
+        cherrypy.response.headers['Content-Type'] = 'image/png'
+        return buffer.getvalue()
 
 
 if __name__ == "__main__":
@@ -136,10 +142,10 @@ if __name__ == "__main__":
     cherrypy.config.update({
                         'server.socket_port': 8042,
                         'server.socket_host': '127.0.0.1',
-                        #'server.ssl_module':  'builtin',
-                        #'server.ssl_certificate': 'cert.pem',
-                        #'server.ssl_certificate': 'fullchain.pem',
-                        #'server.ssl_private_key': 'privkey.pem',
-                        #'server.ssl_certificate_chain': 'chain.perm'
+                        # 'server.ssl_module':  'builtin',
+                        # 'server.ssl_certificate': 'cert.pem',
+                        # 'server.ssl_certificate': 'fullchain.pem',
+                        # 'server.ssl_private_key': 'privkey.pem',
+                        # 'server.ssl_certificate_chain': 'chain.perm'
                        })
     cherrypy.quickstart(Root())
