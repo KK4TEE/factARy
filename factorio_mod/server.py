@@ -103,11 +103,15 @@ class Root:
         s += f"File Path: '{filepath1}' <br>"
         s += f"Last Attempt Time: '{lastTime}' <br>"
         s += f"Status: {data['status']} <br>"
+        s += "<br>"
 
         if len(data['error']) > 0:
             s += f"Error: {data['error']} <br>"
         else:
             s += "Click <a href=\"/json\">here</a> for JSON data"
+        
+        s += "<br><br>"
+        s += "Click <a href=\"/map\">here</a> for the world map <br>"
 
         return s
 
@@ -115,6 +119,14 @@ class Root:
     @cherrypy.tools.json_out()
     def json(self):
         global data
+        data = read_attempt_manager()
+        return data
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    def map(self):
+        global data
+        
         data = read_attempt_manager()
         return data
 
